@@ -1,0 +1,15 @@
+{
+  "domain": "erovinieta",
+  "name": "eRovinieta Romania",
+  "codeowners": [
+    "@emanuelbesliu"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/emanuelbesliu/homeassistant-erovinieta",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/emanuelbesliu/homeassistant-erovinieta/issues",
+  "requirements": [
+    "ddddocr>=1.4.11"
+  ],
+  "version": "0.1.0"
+}

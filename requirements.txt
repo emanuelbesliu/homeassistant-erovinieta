@@ -1,0 +1,5 @@
+# eRovinieta Romania Home Assistant Integration Dependencies
+# These dependencies must be kept in sync with manifest.json
+
+# OCR library for solving captcha images
+ddddocr>=1.4.11

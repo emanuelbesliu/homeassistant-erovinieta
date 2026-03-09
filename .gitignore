@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Home Assistant
+*.log
+home-assistant.log
+home-assistant_v2.db
+*.db-shm
+*.db-wal
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment
+.env
+venv/
+env/
+
+# Release artifacts (should only exist in GitHub Releases)
+*.zip
+RELEASE_*.md
+GITHUB_PUSH_SUMMARY.md
+
+# Verbose documentation (keep only README.md, CHANGELOG.md, info.md)
+AUTO_VERSIONING.md
+DEPENDABOT.md
+WORKFLOWS.md
+SETUP.md
