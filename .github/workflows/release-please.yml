@@ -4,6 +4,7 @@ name: Release Please
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -34,7 +35,7 @@ jobs:
           cd custom_components/erovinieta
           zip -r "../../erovinieta-${{ steps.release.outputs.tag_name }}.zip" \
             *.py manifest.json strings.json \
-            translations/
+            translations/ brand/
           cd ../..
 
       - name: Upload release asset
