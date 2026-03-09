@@ -24,7 +24,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.13'
 
       - name: Install dependencies
         run: |
@@ -50,7 +50,11 @@ jobs:
 
       - name: Test import
         run: |
-          python -c "import ddddocr; print(f'ddddocr version: {ddddocr.__version__}')"
+          python -c "
+          import importlib.metadata
+          ver = importlib.metadata.version('ddddocr')
+          print(f'ddddocr version: {ver}')
+          "
           echo "All dependencies can be imported"
 
       - name: Check for security vulnerabilities

@@ -5,7 +5,34 @@ import time
 from typing import Any
 
 import aiohttp
-import ddddocr
+
+# ddddocr 1.6.0 has a packaging bug: core/ directory shadows core.py,
+# breaking the top-level import.  Work around it by patching __init__.py
+# in-process before the first import.
+try:
+    import ddddocr
+except ImportError:
+    # Attempt to fix the broken __init__.py at the package level.
+    # The compat sub-package works fine; only the top-level __init__ is wrong.
+    import importlib
+    import importlib.util
+    import pathlib
+    import sys
+
+    _spec = importlib.util.find_spec("ddddocr")
+    if _spec is None or _spec.origin is None:
+        raise  # genuinely missing
+    _init_path = pathlib.Path(_spec.origin)
+    _init_path.write_text(
+        '# coding=utf-8\nfrom .compat import DdddOcr\n\n__all__ = ["DdddOcr"]\n',
+        encoding="utf-8",
+    )
+    # Remove any cached bytecode so Python re-reads the patched source
+    for _pyc in _init_path.parent.glob("__pycache__/__init__.*"):
+        _pyc.unlink(missing_ok=True)
+    # Drop the partially-loaded module so importlib retries from scratch
+    sys.modules.pop("ddddocr", None)
+    import ddddocr  # noqa: E402  — should now succeed
 
 from .const import (
     API_URL_CAPTCHA,
