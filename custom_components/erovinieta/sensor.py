@@ -151,7 +151,7 @@ class ERovignetaExpiryDateSensor(ERovignetaBaseSensor):
 
 
 class ERovignetaPriceSensor(ERovignetaBaseSensor):
-    """Sensor for the rovinieta price paid."""
+    """Sensor for the total payment amount across all vignettes in the transaction."""
 
     _attr_icon = "mdi:cash"
     _attr_device_class = SensorDeviceClass.MONETARY
@@ -165,12 +165,12 @@ class ERovignetaPriceSensor(ERovignetaBaseSensor):
     ) -> None:
         """Initialize price sensor."""
         super().__init__(coordinator, entry, plate)
-        self._attr_name = f"Rovinieta {plate} Price"
+        self._attr_name = "eRovinieta Payment Total"
         self._attr_unique_id = f"{DOMAIN}_{plate}_price"
 
     @property
     def native_value(self) -> float | None:
-        """Return the price paid in RON."""
+        """Return the total payment amount in RON."""
         data = self.coordinator.data or {}
         price = data.get("price")
         if price is None:
@@ -186,6 +186,7 @@ class ERovignetaPriceSensor(ERovignetaBaseSensor):
         data = self.coordinator.data or {}
         return {
             "plate_number": self._plate,
+            "vignette_count": data.get("vignette_count"),
             "duration": data.get("duration"),
             "vehicle_category": data.get("vehicle_category"),
         }
