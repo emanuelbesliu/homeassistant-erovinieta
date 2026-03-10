@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.1](https://github.com/emanuelbesliu/homeassistant-erovinieta/compare/v0.2.0...v0.2.1) (2026-03-10)
+
+
+### Bug Fixes
+
+* remove redundant binary_sensor (days_remaining already covers validity) ([4ffca57](https://github.com/emanuelbesliu/homeassistant-erovinieta/commit/4ffca57600eb7f073bf784ecfc26dc7f56f4d3aa))
+* use DATE device class for expiry sensor to show actual date instead of relative time ([43cc088](https://github.com/emanuelbesliu/homeassistant-erovinieta/commit/43cc0886305c55f3ef4b249cfd3ae9e715d7f8c7))
+
 ## [0.2.0](https://github.com/emanuelbesliu/homeassistant-erovinieta/compare/erovinieta-v0.1.1...erovinieta-v0.2.0) (2026-03-10)
 
 
