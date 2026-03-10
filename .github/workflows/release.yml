@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install homeassistant ddddocr voluptuous
+          pip install homeassistant voluptuous
 
       - name: Validate Python syntax
         run: |
@@ -42,7 +42,12 @@ jobs:
 
       - name: Check manifest version matches release
         run: |
-          RELEASE_TAG="${GITHUB_REF#refs/tags/v}"
+          # Tag format: erovinieta-v0.2.0 or v0.2.0
+          RAW_TAG="${GITHUB_REF#refs/tags/}"
+          # Strip component prefix if present (e.g., erovinieta-v0.2.0 -> v0.2.0)
+          VERSION_TAG="${RAW_TAG##*-v}"
+          # Also handle simple v-prefix (e.g., v0.2.0 -> 0.2.0)
+          RELEASE_TAG="${VERSION_TAG#v}"
           MANIFEST_VERSION=$(python -c "import json; print(json.load(open('custom_components/erovinieta/manifest.json'))['version'])")
 
           if [ "$RELEASE_TAG" != "$MANIFEST_VERSION" ]; then
