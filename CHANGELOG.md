@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/emanuelbesliu/homeassistant-erovinieta/compare/v0.2.1...v0.2.2) (2026-03-10)
+
+
+### Bug Fixes
+
+* rename price sensor to Payment Total and add vignette count attribute ([6fd9be7](https://github.com/emanuelbesliu/homeassistant-erovinieta/commit/6fd9be7f04b53ae9ddc34ca4149af43f3ef8c0ba))
+
 ## [0.2.1](https://github.com/emanuelbesliu/homeassistant-erovinieta/compare/v0.2.0...v0.2.1) (2026-03-10)
 
 
