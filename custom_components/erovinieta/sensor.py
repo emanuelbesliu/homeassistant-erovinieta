@@ -1,7 +1,7 @@
 """Sensor entities for eRovinieta."""
 
 import logging
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -114,7 +114,7 @@ class ERovignetaExpiryDateSensor(ERovignetaBaseSensor):
     """Sensor for the rovinieta expiry date."""
 
     _attr_icon = "mdi:calendar-remove"
-    _attr_device_class = SensorDeviceClass.TIMESTAMP
+    _attr_device_class = SensorDeviceClass.DATE
 
     def __init__(
         self,
@@ -128,14 +128,14 @@ class ERovignetaExpiryDateSensor(ERovignetaBaseSensor):
         self._attr_unique_id = f"{DOMAIN}_{plate}_expiry_date"
 
     @property
-    def native_value(self) -> datetime | None:
-        """Return the expiry date as a datetime."""
+    def native_value(self) -> date | None:
+        """Return the expiry date."""
         data = self.coordinator.data or {}
         expiry_str = data.get("expiry_date")
         if not expiry_str:
             return None
         try:
-            return datetime.fromisoformat(expiry_str)
+            return datetime.fromisoformat(expiry_str).date()
         except (ValueError, TypeError):
             return None
 
