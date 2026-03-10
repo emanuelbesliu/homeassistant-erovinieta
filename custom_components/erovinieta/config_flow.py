@@ -101,15 +101,11 @@ class ERovignetaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Return the options flow handler."""
-        return ERovignetaOptionsFlowHandler(config_entry)
+        return ERovignetaOptionsFlowHandler()
 
 
 class ERovignetaOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle eRovinieta options."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
