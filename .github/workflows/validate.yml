@@ -47,8 +47,8 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install Home Assistant and dependencies
-        run: pip install homeassistant "ddddocr>=1.5.0"
+      - name: Install Home Assistant
+        run: pip install homeassistant
 
       - name: Test import of all integration modules
         run: |

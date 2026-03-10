@@ -1,5 +1,3 @@
 # eRovinieta Romania Home Assistant Integration Dependencies
-# These dependencies must be kept in sync with manifest.json
-
-# OCR library for solving captcha images
-ddddocr>=1.5.0
+# No external dependencies required — uses only HA built-in libraries
+# (Pillow for captcha OCR, aiohttp for HTTP requests)

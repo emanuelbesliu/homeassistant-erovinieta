@@ -6,34 +6,7 @@ from typing import Any
 
 import aiohttp
 
-# ddddocr 1.6.0 has a packaging bug: core/ directory shadows core.py,
-# breaking the top-level import.  Work around it by patching __init__.py
-# in-process before the first import.
-try:
-    import ddddocr
-except ImportError:
-    # Attempt to fix the broken __init__.py at the package level.
-    # The compat sub-package works fine; only the top-level __init__ is wrong.
-    import importlib
-    import importlib.util
-    import pathlib
-    import sys
-
-    _spec = importlib.util.find_spec("ddddocr")
-    if _spec is None or _spec.origin is None:
-        raise  # genuinely missing
-    _init_path = pathlib.Path(_spec.origin)
-    _init_path.write_text(
-        '# coding=utf-8\nfrom .compat import DdddOcr\n\n__all__ = ["DdddOcr"]\n',
-        encoding="utf-8",
-    )
-    # Remove any cached bytecode so Python re-reads the patched source
-    for _pyc in _init_path.parent.glob("__pycache__/__init__.*"):
-        _pyc.unlink(missing_ok=True)
-    # Drop the partially-loaded module so importlib retries from scratch
-    sys.modules.pop("ddddocr", None)
-    import ddddocr  # noqa: E402  — should now succeed
-
+from .captcha_ocr import solve_captcha
 from .const import (
     API_URL_CAPTCHA,
     API_URL_GET_ROADTAX,
@@ -53,16 +26,6 @@ class CaptchaError(ERovignetaAPIError):
 
 class ERovignetaAPI:
     """Async API client for erovinieta.ro."""
-
-    def __init__(self) -> None:
-        """Initialize the API client."""
-        self._ocr: ddddocr.DdddOcr | None = None
-
-    def _get_ocr(self) -> ddddocr.DdddOcr:
-        """Lazy-initialize the OCR engine (heavy import, do once)."""
-        if self._ocr is None:
-            self._ocr = ddddocr.DdddOcr(show_ad=False)
-        return self._ocr
 
     async def async_get_roadtax(
         self,
@@ -141,9 +104,12 @@ class ERovignetaAPI:
                 )
             captcha_image = await resp.read()
 
-        # Step 2: OCR the captcha
-        ocr = self._get_ocr()
-        captcha_text = ocr.classification(captcha_image)
+        # Step 2: OCR the captcha using Pillow-based template matching
+        try:
+            captcha_text = solve_captcha(captcha_image)
+        except ValueError as err:
+            raise CaptchaError(f"OCR failed: {err}") from err
+
         _LOGGER.debug("OCR result: %s", captcha_text)
 
         if not captcha_text or len(captcha_text) < 3:

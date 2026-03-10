@@ -26,42 +26,29 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Install dependencies
+      - name: Verify manifest.json requirements
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Verify manifest.json requirements match
-        run: |
-          # Extract requirements from manifest.json
-          MANIFEST_REQS=$(python -c "import json; print(' '.join(json.load(open('custom_components/erovinieta/manifest.json'))['requirements']))")
-
-          echo "Manifest requirements: $MANIFEST_REQS"
-          echo "requirements.txt:"
-          cat requirements.txt | grep -v '^#' | grep -v '^$'
-
-          # Check if required packages are in requirements.txt
-          if ! grep -q "ddddocr" requirements.txt; then
-            echo "ddddocr not found in requirements.txt"
+          # Ensure manifest.json has an empty requirements list
+          # (all dependencies are HA built-ins: Pillow, aiohttp)
+          REQS=$(python -c "
+          import json
+          reqs = json.load(open('custom_components/erovinieta/manifest.json'))['requirements']
+          print(len(reqs))
+          ")
+          echo "Number of external requirements: $REQS"
+          if [ "$REQS" -ne 0 ]; then
+            echo "::error::manifest.json should have empty requirements (Pillow and aiohttp are HA built-ins)"
             exit 1
           fi
+          echo "Dependencies validation passed — no external requirements needed"
 
-          echo "Dependencies validation passed"
-
-      - name: Test import
+      - name: Verify Pillow is available
         run: |
+          pip install Pillow
           python -c "
-          import importlib.metadata
-          ver = importlib.metadata.version('ddddocr')
-          print(f'ddddocr version: {ver}')
+          from PIL import Image
+          print(f'Pillow available: {Image.__version__}')
           "
-          echo "All dependencies can be imported"
-
-      - name: Check for security vulnerabilities
-        run: |
-          pip install safety
-          safety check --file requirements.txt --json || echo "Security check completed"
-        continue-on-error: true
 
       - name: Create validation summary
         run: |
@@ -69,5 +56,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "All dependencies validated successfully!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Installed Versions" >> $GITHUB_STEP_SUMMARY
-          pip list | grep -E "ddddocr|onnxruntime" >> $GITHUB_STEP_SUMMARY || true
+          echo "This integration uses only HA built-in libraries:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pillow** — captcha OCR via template matching" >> $GITHUB_STEP_SUMMARY
+          echo "- **aiohttp** — HTTP requests" >> $GITHUB_STEP_SUMMARY
