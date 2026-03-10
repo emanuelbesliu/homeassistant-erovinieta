@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/emanuelbesliu/homeassistant-erovinieta/compare/v0.1.0...v0.1.1) (2026-03-10)
+
+
+### Bug Fixes
+
+* replace ddddocr with Pillow-based template OCR for Python 3.14+ compatibility ([fbfec0f](https://github.com/emanuelbesliu/homeassistant-erovinieta/commit/fbfec0f29a9dd2e0a906e71da5107eb607a96ddb))
+
 ## 0.1.0 (2026-03-09)
 
 
