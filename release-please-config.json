@@ -1,0 +1,15 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "python",
+      "package-name": "erovinieta",
+      "extra-files": [
+        {
+          "type": "json",
+          "path": "custom_components/erovinieta/manifest.json",
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  }
+}
