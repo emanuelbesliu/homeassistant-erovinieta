@@ -3,6 +3,7 @@
     ".": {
       "release-type": "python",
       "package-name": "erovinieta",
+      "include-component-in-tag": false,
       "extra-files": [
         {
           "type": "json",
