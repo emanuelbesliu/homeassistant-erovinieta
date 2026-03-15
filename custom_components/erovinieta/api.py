@@ -1,4 +1,8 @@
-"""API client for erovinieta.ro — check Romanian road tax (rovinieta) validity."""
+"""API client for erovinieta.ro — check Romanian road tax (rovinieta) validity.
+
+Uses the anonymous public API — no account or login required.
+Authentication is handled via captcha solving only.
+"""
 
 import logging
 import time
@@ -12,16 +16,16 @@ from .const import (
     API_URL_GET_ROADTAX,
     MAX_CAPTCHA_RETRIES,
 )
+from .exceptions import (
+    ERovignetaAPIError,
+    ERovignetaCaptchaError,
+    ERovignetaConnectionError,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
-
-class ERovignetaAPIError(Exception):
-    """Base exception for eRovinieta API errors."""
-
-
-class CaptchaError(ERovignetaAPIError):
-    """Captcha OCR or validation failed."""
+# Keep backward-compatible aliases so existing imports still work
+CaptchaError = ERovignetaCaptchaError
 
 
 class ERovignetaAPI:
@@ -48,6 +52,7 @@ class ERovignetaAPI:
 
         Raises:
             ERovignetaAPIError: On API failure after all retries.
+            ERovignetaConnectionError: On network / HTTP errors.
         """
         own_session = session is None
         if own_session:
@@ -55,6 +60,10 @@ class ERovignetaAPI:
 
         try:
             return await self._fetch_with_retries(session, plate_number, vin)
+        except aiohttp.ClientError as err:
+            raise ERovignetaConnectionError(
+                f"Connection error to erovinieta.ro: {err}"
+            ) from err
         finally:
             if own_session:
                 await session.close()
@@ -71,7 +80,7 @@ class ERovignetaAPI:
         for attempt in range(1, MAX_CAPTCHA_RETRIES + 1):
             try:
                 return await self._single_attempt(session, plate_number, vin)
-            except CaptchaError as err:
+            except ERovignetaCaptchaError as err:
                 _LOGGER.warning(
                     "Captcha attempt %d/%d failed: %s",
                     attempt,
@@ -97,23 +106,30 @@ class ERovignetaAPI:
         captcha_url = f"{API_URL_CAPTCHA}?t={timestamp}"
 
         _LOGGER.debug("Fetching captcha from %s", captcha_url)
-        async with session.get(captcha_url) as resp:
-            if resp.status != 200:
-                raise ERovignetaAPIError(
-                    f"Captcha fetch failed: HTTP {resp.status}"
-                )
-            captcha_image = await resp.read()
+        try:
+            async with session.get(captcha_url) as resp:
+                if resp.status != 200:
+                    raise ERovignetaConnectionError(
+                        f"Captcha fetch failed: HTTP {resp.status}"
+                    )
+                captcha_image = await resp.read()
+        except aiohttp.ClientError as err:
+            raise ERovignetaConnectionError(
+                f"Network error fetching captcha: {err}"
+            ) from err
 
         # Step 2: OCR the captcha using Pillow-based template matching
         try:
             captcha_text = solve_captcha(captcha_image)
         except ValueError as err:
-            raise CaptchaError(f"OCR failed: {err}") from err
+            raise ERovignetaCaptchaError(f"OCR failed: {err}") from err
 
         _LOGGER.debug("OCR result: %s", captcha_text)
 
         if not captcha_text or len(captcha_text) < 3:
-            raise CaptchaError(f"OCR returned unusable text: '{captcha_text}'")
+            raise ERovignetaCaptchaError(
+                f"OCR returned unusable text: '{captcha_text}'"
+            )
 
         # Step 3: Call getRoadtax with the same session (JSESSIONID cookie)
         params = {
@@ -123,18 +139,23 @@ class ERovignetaAPI:
         }
         _LOGGER.debug("Calling getRoadtax for plate=%s", plate_number)
 
-        async with session.get(API_URL_GET_ROADTAX, params=params) as resp:
-            if resp.status != 200:
-                raise ERovignetaAPIError(
-                    f"getRoadtax failed: HTTP {resp.status}"
-                )
-            data = await resp.json()
+        try:
+            async with session.get(API_URL_GET_ROADTAX, params=params) as resp:
+                if resp.status != 200:
+                    raise ERovignetaConnectionError(
+                        f"getRoadtax failed: HTTP {resp.status}"
+                    )
+                data = await resp.json()
+        except aiohttp.ClientError as err:
+            raise ERovignetaConnectionError(
+                f"Network error calling getRoadtax: {err}"
+            ) from err
 
         # Check for captcha error
         if not data.get("success"):
             message = data.get("message", "Unknown error")
             if "captcha" in message.lower() or "text" in message.lower():
-                raise CaptchaError(f"Bad captcha: {message}")
+                raise ERovignetaCaptchaError(f"Bad captcha: {message}")
             raise ERovignetaAPIError(f"API error: {message}")
 
         return data

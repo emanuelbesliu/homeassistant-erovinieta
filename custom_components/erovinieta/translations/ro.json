@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Configurare eRovinieta Romania",
-        "description": "Introduceti numarul de inmatriculare si seria de sasiu (VIN) pentru a verifica valabilitatea rovinietei pe erovinieta.ro.",
+        "description": "Nu este nevoie de cont sau autentificare. Introduceti doar numarul de inmatriculare si seria de sasiu (VIN) pentru a verifica valabilitatea rovinietei pe erovinieta.ro.",
         "data": {
           "plate_number": "Numar inmatriculare (ex. B123ABC)",
           "vin": "Serie sasiu (VIN)",

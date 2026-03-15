@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurer eRovinieta Roumanie",
+        "description": "Aucun compte ni connexion requis. Entrez simplement la plaque d'immatriculation du véhicule et le numéro VIN complet pour vérifier la validité de la rovinieta sur erovinieta.ro.",
+        "data": {
+          "plate_number": "Plaque d'immatriculation (ex. B123ABC)",
+          "vin": "VIN / Numéro de châssis",
+          "update_interval": "Intervalle de mise à jour (secondes)",
+          "expiry_warning_days": "Seuil d'avertissement d'expiration (jours)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Impossible de se connecter à erovinieta.ro ou la validation du captcha a échoué. Veuillez réessayer.",
+      "unknown": "Une erreur inconnue s'est produite. Vérifiez les journaux de Home Assistant."
+    },
+    "abort": {
+      "already_configured": "Cette plaque d'immatriculation est déjà configurée."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options eRovinieta",
+        "description": "Configurez les options de l'intégration eRovinieta.",
+        "data": {
+          "update_interval": "Intervalle de mise à jour (secondes)",
+          "expiry_warning_days": "Seuil d'avertissement d'expiration (jours)"
+        }
+      }
+    }
+  }
+}

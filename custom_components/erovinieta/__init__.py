@@ -1,4 +1,8 @@
-"""eRovinieta integration for Home Assistant."""
+"""eRovinieta integration for Home Assistant.
+
+Check Romanian road tax (rovinieta) validity using only the vehicle's
+plate number and VIN — no erovinieta.ro account or login required.
+"""
 
 import logging
 from datetime import timedelta
@@ -6,6 +10,7 @@ from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
@@ -17,6 +22,7 @@ from .const import (
     DEFAULT_EXPIRY_WARNING_DAYS,
 )
 from .coordinator import ERovignetaDataUpdateCoordinator
+from .exceptions import ERovignetaConnectionError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,7 +41,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug("Setting up eRovinieta entry %s", entry.entry_id)
 
     coordinator = ERovignetaDataUpdateCoordinator(hass, entry)
-    await coordinator.async_config_entry_first_refresh()
+
+    try:
+        await coordinator.async_config_entry_first_refresh()
+    except ConfigEntryNotReady:
+        raise
+    except ERovignetaConnectionError as err:
+        raise ConfigEntryNotReady(
+            f"Cannot reach erovinieta.ro: {err}"
+        ) from err
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = coordinator

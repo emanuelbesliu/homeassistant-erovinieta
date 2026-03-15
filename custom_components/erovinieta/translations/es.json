@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurar eRovinieta Rumanía",
+        "description": "No se necesita cuenta ni inicio de sesión. Simplemente introduzca la matrícula del vehículo y el número VIN completo para verificar la validez de la rovinieta en erovinieta.ro.",
+        "data": {
+          "plate_number": "Matrícula (ej. B123ABC)",
+          "vin": "VIN / Número de bastidor",
+          "update_interval": "Intervalo de actualización (segundos)",
+          "expiry_warning_days": "Umbral de aviso de vencimiento (días)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No se puede conectar a erovinieta.ro o la validación del captcha ha fallado. Inténtelo de nuevo.",
+      "unknown": "Se produjo un error desconocido. Revise los registros de Home Assistant."
+    },
+    "abort": {
+      "already_configured": "Esta matrícula ya está configurada."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opciones de eRovinieta",
+        "description": "Configure las opciones de la integración eRovinieta.",
+        "data": {
+          "update_interval": "Intervalo de actualización (segundos)",
+          "expiry_warning_days": "Umbral de aviso de vencimiento (días)"
+        }
+      }
+    }
+  }
+}

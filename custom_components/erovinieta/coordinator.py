@@ -1,4 +1,8 @@
-"""Data Update Coordinator for eRovinieta."""
+"""Data Update Coordinator for eRovinieta.
+
+Periodically queries the anonymous erovinieta.ro API (no account required)
+to refresh vignette validity data for a single vehicle.
+"""
 
 import logging
 from datetime import datetime, timedelta, timezone
@@ -11,7 +15,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from .api import ERovignetaAPI, ERovignetaAPIError
+from .api import ERovignetaAPI
 from .const import (
     DOMAIN,
     CONF_PLATE_NUMBER,
@@ -22,6 +26,7 @@ from .const import (
     DEFAULT_EXPIRY_WARNING_DAYS,
     EVENT_EXPIRING_SOON,
 )
+from .exceptions import ERovignetaAPIError, ERovignetaConnectionError
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -71,6 +76,10 @@ class ERovignetaDataUpdateCoordinator(DataUpdateCoordinator):
         """Fetch data from the eRovinieta API."""
         try:
             raw = await self.api.async_get_roadtax(self.plate_number, self.vin)
+        except ERovignetaConnectionError as err:
+            raise UpdateFailed(
+                f"Connection error to erovinieta.ro: {err}"
+            ) from err
         except ERovignetaAPIError as err:
             raise UpdateFailed(f"eRovinieta API error: {err}") from err
         except Exception as err:

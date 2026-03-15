@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "eRovinieta Rumänien konfigurieren",
+        "description": "Kein Konto oder Login erforderlich. Geben Sie einfach das Fahrzeugkennzeichen und die vollständige Fahrgestellnummer (VIN) ein, um die Gültigkeit der Rovinieta auf erovinieta.ro zu prüfen.",
+        "data": {
+          "plate_number": "Kennzeichen (z.B. B123ABC)",
+          "vin": "VIN / Fahrgestellnummer",
+          "update_interval": "Aktualisierungsintervall (Sekunden)",
+          "expiry_warning_days": "Ablaufwarnung (Tage)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zu erovinieta.ro nicht möglich oder Captcha-Validierung fehlgeschlagen. Bitte erneut versuchen.",
+      "unknown": "Unbekannter Fehler aufgetreten. Überprüfen Sie die Home Assistant-Protokolle."
+    },
+    "abort": {
+      "already_configured": "Dieses Fahrzeugkennzeichen ist bereits konfiguriert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "eRovinieta Optionen",
+        "description": "Optionen für die eRovinieta-Integration konfigurieren.",
+        "data": {
+          "update_interval": "Aktualisierungsintervall (Sekunden)",
+          "expiry_warning_days": "Ablaufwarnung (Tage)"
+        }
+      }
+    }
+  }
+}

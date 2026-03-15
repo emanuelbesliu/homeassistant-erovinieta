@@ -8,7 +8,8 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
 
-from .api import ERovignetaAPI, ERovignetaAPIError
+from .api import ERovignetaAPI
+from .exceptions import ERovignetaAPIError, ERovignetaConnectionError
 from .const import (
     DOMAIN,
     CONF_PLATE_NUMBER,
@@ -25,7 +26,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ERovignetaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for eRovinieta."""
+    """Config flow for eRovinieta.
+
+    Only a plate number and VIN are needed — no account or login required.
+    """
 
     VERSION = 1
 
@@ -47,6 +51,9 @@ class ERovignetaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 api = ERovignetaAPI()
                 await api.async_validate(plate, vin)
+            except ERovignetaConnectionError as err:
+                _LOGGER.error("eRovinieta connection failed: %s", err)
+                errors["base"] = "cannot_connect"
             except ERovignetaAPIError as err:
                 _LOGGER.error("eRovinieta validation failed: %s", err)
                 errors["base"] = "cannot_connect"

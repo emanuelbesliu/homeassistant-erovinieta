@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Configure eRovinieta Romania",
-        "description": "Enter the vehicle registration plate and full VIN (chassis number) to check rovinieta validity on erovinieta.ro.",
+        "description": "No account or login required. Just enter the vehicle registration plate and full VIN (chassis number) to check rovinieta validity on erovinieta.ro.",
         "data": {
           "plate_number": "Plate Number (e.g. B123ABC)",
           "vin": "VIN / Chassis Number",
