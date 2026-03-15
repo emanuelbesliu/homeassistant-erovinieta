@@ -5,9 +5,11 @@
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1+-blue.svg)](https://www.home-assistant.io/)
 [![License](https://img.shields.io/github/license/emanuelbesliu/homeassistant-erovinieta)](LICENSE)
 
-Custom Home Assistant integration for checking **Romanian road tax (rovinieta)** validity and expiry via [erovinieta.ro](https://erovinieta.ro) (CNAIR Romania).
+Custom Home Assistant integration for checking **Romanian road tax (rovinieta)** validity and expiry via [erovinieta.ro](https://erovinieta.ro) (CNAIR Romania). **No erovinieta.ro account or login required** — just your plate number and VIN.
 
 Monitors your vehicle's vignette status daily and fires warning events when it's about to expire, so you never get caught driving without a valid rovinieta.
+
+> **No account needed** — This integration uses the same anonymous public lookup available on the erovinieta.ro website. You do not need to create an account, log in, or provide any credentials. Only your vehicle's plate number and VIN (chassis number) are needed.
 
 ## Features
 
@@ -57,6 +59,8 @@ Each sensor exposes additional attributes:
 2. Restart Home Assistant
 
 ## Configuration
+
+No account or login on erovinieta.ro is needed. The setup only asks for your vehicle details.
 
 ### Setup
 
@@ -158,14 +162,14 @@ entities:
 
 ## How It Works
 
-The integration queries the [erovinieta.ro](https://erovinieta.ro) public anonymous API:
+The integration queries the [erovinieta.ro](https://erovinieta.ro) public anonymous API — **no account or login required**:
 
 1. Fetches a CAPTCHA image from the CNAIR server
-2. Solves the CAPTCHA using OCR ([ddddocr](https://github.com/sml2h3/ddddocr))
+2. Solves the CAPTCHA using a built-in Pillow-based template OCR engine (no external ML dependencies)
 3. Queries the road tax status using your plate number and VIN
 4. Parses the response and updates all sensors
 
-No account or login is required — the integration uses the same anonymous lookup available on the erovinieta.ro website.
+Unlike other erovinieta integrations that require you to create an account and log in, this integration uses the same anonymous public lookup available on the erovinieta.ro website. No credentials are stored or transmitted — only your plate number and VIN.
 
 ## Troubleshooting
 
@@ -190,18 +194,19 @@ The integration retries CAPTCHA solving up to 3 times per update cycle. If you s
 
 ## Technical Details
 
-- **API**: erovinieta.ro anonymous REST API (CNAIR Romania)
-- **CAPTCHA**: Server-side image CAPTCHA, solved via `ddddocr` OCR library
+- **API**: erovinieta.ro anonymous REST API (CNAIR Romania) — no account or login needed
+- **CAPTCHA**: Server-side image CAPTCHA, solved via built-in Pillow-based template OCR (no external ML dependencies)
 - **Polling**: Configurable, defaults to every 24 hours
-- **Dependencies**: `ddddocr>=1.4.11` (installed automatically)
+- **Dependencies**: None beyond Pillow (bundled with Home Assistant)
 - **Platforms**: `sensor`, `binary_sensor`
 
-## Security
+## Security & Privacy
 
-- No credentials required — uses anonymous public API
-- Only plate number and VIN are sent to erovinieta.ro
+- **No account or login required** — uses the anonymous public API, no credentials to store or protect
+- Only plate number and VIN are sent to erovinieta.ro (no passwords, no tokens, no cookies)
 - All communication uses HTTPS
 - No personal data is stored beyond what the API returns
+- Sensitive fields are automatically redacted in Home Assistant diagnostics
 
 ## License
 
