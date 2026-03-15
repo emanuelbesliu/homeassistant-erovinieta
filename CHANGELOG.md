@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.0](https://github.com/emanuelbesliu/homeassistant-erovinieta/compare/v0.2.2...v0.3.0) (2026-03-15)
+
+
+### Features
+
+* v0.3.0 — exception hierarchy, diagnostics, translations, improved error handling ([b71e049](https://github.com/emanuelbesliu/homeassistant-erovinieta/commit/b71e0493a14e3304eba869c47f754d4215b198a2))
+
+
+### Documentation
+
+* highlight no-account/no-login requirement across README and repo description ([b2cbd59](https://github.com/emanuelbesliu/homeassistant-erovinieta/commit/b2cbd59a055f101fd3acb714ee631ec814b08adc))
+
 ## [0.2.2](https://github.com/emanuelbesliu/homeassistant-erovinieta/compare/v0.2.1...v0.2.2) (2026-03-10)
 
 
