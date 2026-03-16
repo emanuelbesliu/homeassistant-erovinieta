@@ -214,4 +214,12 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
+## ☕ Support the Developer
+
+If you find this project useful, consider buying me a coffee!
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/emanuelbesliu)
+
+---
+
 *This integration is not affiliated with CNAIR or erovinieta.ro. Data is provided by the CNAIR public vignette verification system.*
