@@ -4,6 +4,7 @@
 [![HACS Validation](https://github.com/emanuelbesliu/homeassistant-erovinieta/actions/workflows/validate.yml/badge.svg)](https://github.com/emanuelbesliu/homeassistant-erovinieta/actions/workflows/validate.yml)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2024.1+-blue.svg)](https://www.home-assistant.io/)
 [![License](https://img.shields.io/github/license/emanuelbesliu/homeassistant-erovinieta)](LICENSE)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/emanuelbesliu)
 
 Custom Home Assistant integration for checking **Romanian road tax (rovinieta)** validity and expiry via [erovinieta.ro](https://erovinieta.ro) (CNAIR Romania). **No erovinieta.ro account or login required** — just your plate number and VIN.
 
