@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/emanuelbesliu/homeassistant-erovinieta/compare/v0.3.0...v1.0.0) (2026-11-27)
+
+
+### ⚠ BREAKING CHANGES
+
+* requires the erovinieta-solver service and the registration certificate number.
+
+### Features
+
+* migrate to portal.etoll.ro via in-cluster captcha solver service ([#11](https://github.com/emanuelbesliu/homeassistant-erovinieta/issues/11)) ([a286cb5](https://github.com/emanuelbesliu/homeassistant-erovinieta/commit/a286cb5872b23638932e8f004f46fe181da35ca7))
+
 ## [0.3.0](https://github.com/emanuelbesliu/homeassistant-erovinieta/compare/v0.2.2...v0.3.0) (2026-03-15)
 
 
