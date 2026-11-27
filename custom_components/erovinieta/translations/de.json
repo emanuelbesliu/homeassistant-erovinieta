@@ -8,13 +8,16 @@
           "plate_number": "Kennzeichen (z.B. B123ABC)",
           "vin": "VIN / Fahrgestellnummer",
           "update_interval": "Aktualisierungsintervall (Sekunden)",
-          "expiry_warning_days": "Ablaufwarnung (Tage)"
+          "expiry_warning_days": "Ablaufwarnung (Tage)",
+          "registration_series": "Registration certificate number (e.g. I00807592S)",
+          "solver_url": "Solver service URL"
         }
       }
     },
     "error": {
-      "cannot_connect": "Verbindung zu erovinieta.ro nicht möglich oder Captcha-Validierung fehlgeschlagen. Bitte erneut versuchen.",
-      "unknown": "Unbekannter Fehler aufgetreten. Überprüfen Sie die Home Assistant-Protokolle."
+      "cannot_connect": "Cannot reach the solver service or the captcha could not be solved. Please try again.",
+      "unknown": "Unbekannter Fehler aufgetreten. Überprüfen Sie die Home Assistant-Protokolle.",
+      "invalid_vehicle": "The portal rejected the vehicle data. Check plate, VIN and certificate number."
     },
     "abort": {
       "already_configured": "Dieses Fahrzeugkennzeichen ist bereits konfiguriert."
@@ -27,7 +30,9 @@
         "description": "Optionen für die eRovinieta-Integration konfigurieren.",
         "data": {
           "update_interval": "Aktualisierungsintervall (Sekunden)",
-          "expiry_warning_days": "Ablaufwarnung (Tage)"
+          "expiry_warning_days": "Ablaufwarnung (Tage)",
+          "registration_series": "Registration certificate number (e.g. I00807592S)",
+          "solver_url": "Solver service URL"
         }
       }
     }

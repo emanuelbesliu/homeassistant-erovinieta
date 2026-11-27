@@ -2,14 +2,11 @@
 
 DOMAIN = "erovinieta"
 
-# API
-API_BASE_URL = "https://erovinieta.ro/vignettes-portal-web"
-API_URL_CAPTCHA = f"{API_BASE_URL}/rest/anonymous/generateCaptchaImage"
-API_URL_GET_ROADTAX = f"{API_BASE_URL}/rest/anonymous/roadTax/getRoadtax"
-
 # Configuration keys
 CONF_PLATE_NUMBER = "plate_number"
 CONF_VIN = "vin"
+CONF_SERIES = "registration_series"
+CONF_SOLVER_URL = "solver_url"
 CONF_UPDATE_INTERVAL = "update_interval"
 CONF_EXPIRY_WARNING_DAYS = "expiry_warning_days"
 
@@ -19,11 +16,11 @@ MIN_UPDATE_INTERVAL = 3600  # 1 hour
 MAX_UPDATE_INTERVAL = 604800  # 7 days
 DEFAULT_EXPIRY_WARNING_DAYS = 14
 
-# Captcha
-MAX_CAPTCHA_RETRIES = 5
+DEFAULT_SOLVER_URL = "http://10.0.102.10:8195"
+SOLVER_TIMEOUT = 300  # solver retries captchas internally and can take minutes
 
 # Event name
 EVENT_EXPIRING_SOON = "erovinieta_expiring_soon"
 
 # Attribution
-ATTRIBUTION = "Data provided by erovinieta.ro (CNAIR Romania)"
+ATTRIBUTION = "Data provided by portal.etoll.ro (CNAIR Romania)"

@@ -8,13 +8,16 @@
           "plate_number": "Matrícula (ej. B123ABC)",
           "vin": "VIN / Número de bastidor",
           "update_interval": "Intervalo de actualización (segundos)",
-          "expiry_warning_days": "Umbral de aviso de vencimiento (días)"
+          "expiry_warning_days": "Umbral de aviso de vencimiento (días)",
+          "registration_series": "Registration certificate number (e.g. I00807592S)",
+          "solver_url": "Solver service URL"
         }
       }
     },
     "error": {
-      "cannot_connect": "No se puede conectar a erovinieta.ro o la validación del captcha ha fallado. Inténtelo de nuevo.",
-      "unknown": "Se produjo un error desconocido. Revise los registros de Home Assistant."
+      "cannot_connect": "Cannot reach the solver service or the captcha could not be solved. Please try again.",
+      "unknown": "Se produjo un error desconocido. Revise los registros de Home Assistant.",
+      "invalid_vehicle": "The portal rejected the vehicle data. Check plate, VIN and certificate number."
     },
     "abort": {
       "already_configured": "Esta matrícula ya está configurada."
@@ -27,7 +30,9 @@
         "description": "Configure las opciones de la integración eRovinieta.",
         "data": {
           "update_interval": "Intervalo de actualización (segundos)",
-          "expiry_warning_days": "Umbral de aviso de vencimiento (días)"
+          "expiry_warning_days": "Umbral de aviso de vencimiento (días)",
+          "registration_series": "Registration certificate number (e.g. I00807592S)",
+          "solver_url": "Solver service URL"
         }
       }
     }

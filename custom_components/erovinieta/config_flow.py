@@ -14,6 +14,9 @@ from .const import (
     DOMAIN,
     CONF_PLATE_NUMBER,
     CONF_VIN,
+    CONF_SERIES,
+    CONF_SOLVER_URL,
+    DEFAULT_SOLVER_URL,
     CONF_UPDATE_INTERVAL,
     CONF_EXPIRY_WARNING_DAYS,
     DEFAULT_UPDATE_INTERVAL,
@@ -28,7 +31,7 @@ _LOGGER = logging.getLogger(__name__)
 class ERovignetaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for eRovinieta.
 
-    Only a plate number and VIN are needed — no account or login required.
+    Plate number, VIN and registration certificate number are needed — no account or login required.
     """
 
     VERSION = 1
@@ -42,6 +45,8 @@ class ERovignetaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             plate = user_input[CONF_PLATE_NUMBER].upper().strip()
             vin = user_input[CONF_VIN].upper().strip()
+            series = user_input[CONF_SERIES].upper().strip()
+            solver_url = user_input[CONF_SOLVER_URL].strip()
 
             # Check for duplicate
             await self.async_set_unique_id(plate)
@@ -49,14 +54,14 @@ class ERovignetaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             # Validate by making a test API call
             try:
-                api = ERovignetaAPI()
-                await api.async_validate(plate, vin)
+                api = ERovignetaAPI(solver_url)
+                await api.async_validate(plate, vin, series)
             except ERovignetaConnectionError as err:
                 _LOGGER.error("eRovinieta connection failed: %s", err)
                 errors["base"] = "cannot_connect"
             except ERovignetaAPIError as err:
                 _LOGGER.error("eRovinieta validation failed: %s", err)
-                errors["base"] = "cannot_connect"
+                errors["base"] = "invalid_vehicle"
             except Exception as err:
                 _LOGGER.error("Unexpected error during validation: %s", err)
                 errors["base"] = "unknown"
@@ -66,6 +71,8 @@ class ERovignetaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data={
                         CONF_PLATE_NUMBER: plate,
                         CONF_VIN: vin,
+                        CONF_SERIES: series,
+                        CONF_SOLVER_URL: solver_url,
                         CONF_UPDATE_INTERVAL: user_input.get(
                             CONF_UPDATE_INTERVAL, DEFAULT_UPDATE_INTERVAL
                         ),
@@ -79,6 +86,8 @@ class ERovignetaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             {
                 vol.Required(CONF_PLATE_NUMBER): str,
                 vol.Required(CONF_VIN): str,
+                vol.Required(CONF_SERIES): str,
+                vol.Optional(CONF_SOLVER_URL, default=DEFAULT_SOLVER_URL): str,
                 vol.Optional(
                     CONF_UPDATE_INTERVAL,
                     default=DEFAULT_UPDATE_INTERVAL,
@@ -132,8 +141,18 @@ class ERovignetaOptionsFlowHandler(config_entries.OptionsFlow):
             ),
         )
 
+        current_series = self.config_entry.options.get(
+            CONF_SERIES, self.config_entry.data.get(CONF_SERIES, "")
+        )
+        current_solver = self.config_entry.options.get(
+            CONF_SOLVER_URL,
+            self.config_entry.data.get(CONF_SOLVER_URL, DEFAULT_SOLVER_URL),
+        )
+
         options_schema = vol.Schema(
             {
+                vol.Required(CONF_SERIES, default=current_series): str,
+                vol.Optional(CONF_SOLVER_URL, default=current_solver): str,
                 vol.Optional(
                     CONF_UPDATE_INTERVAL,
                     default=current_interval,
