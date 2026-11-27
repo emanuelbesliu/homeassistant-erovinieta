@@ -8,13 +8,16 @@
           "plate_number": "Plate Number (e.g. B123ABC)",
           "vin": "VIN / Chassis Number",
           "update_interval": "Update interval (seconds)",
-          "expiry_warning_days": "Expiry warning threshold (days)"
+          "expiry_warning_days": "Expiry warning threshold (days)",
+          "registration_series": "Registration certificate number (e.g. I00807592S)",
+          "solver_url": "Solver service URL"
         }
       }
     },
     "error": {
-      "cannot_connect": "Cannot connect to erovinieta.ro or captcha validation failed. Please try again.",
-      "unknown": "Unknown error occurred. Check Home Assistant logs."
+      "cannot_connect": "Cannot reach the solver service or the captcha could not be solved. Please try again.",
+      "unknown": "Unknown error occurred. Check Home Assistant logs.",
+      "invalid_vehicle": "The portal rejected the vehicle data. Check plate, VIN and certificate number."
     },
     "abort": {
       "already_configured": "This vehicle plate is already configured."
@@ -27,7 +30,9 @@
         "description": "Configure options for the eRovinieta integration.",
         "data": {
           "update_interval": "Update interval (seconds)",
-          "expiry_warning_days": "Expiry warning threshold (days)"
+          "expiry_warning_days": "Expiry warning threshold (days)",
+          "registration_series": "Registration certificate number (e.g. I00807592S)",
+          "solver_url": "Solver service URL"
         }
       }
     }

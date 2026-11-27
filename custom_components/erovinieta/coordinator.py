@@ -20,6 +20,9 @@ from .const import (
     DOMAIN,
     CONF_PLATE_NUMBER,
     CONF_VIN,
+    CONF_SERIES,
+    CONF_SOLVER_URL,
+    DEFAULT_SOLVER_URL,
     CONF_UPDATE_INTERVAL,
     CONF_EXPIRY_WARNING_DAYS,
     DEFAULT_UPDATE_INTERVAL,
@@ -37,10 +40,15 @@ class ERovignetaDataUpdateCoordinator(DataUpdateCoordinator):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         """Initialize the coordinator."""
         self.entry = entry
-        self.api = ERovignetaAPI()
-
         self.plate_number: str = entry.data[CONF_PLATE_NUMBER]
         self.vin: str = entry.data[CONF_VIN]
+        self.series: str = entry.options.get(
+            CONF_SERIES, entry.data.get(CONF_SERIES, "")
+        )
+        solver_url: str = entry.options.get(
+            CONF_SOLVER_URL, entry.data.get(CONF_SOLVER_URL, DEFAULT_SOLVER_URL)
+        )
+        self.api = ERovignetaAPI(solver_url)
 
         update_interval = entry.options.get(
             CONF_UPDATE_INTERVAL,
@@ -74,11 +82,18 @@ class ERovignetaDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from the eRovinieta API."""
+        if not self.series:
+            raise UpdateFailed(
+                "Registration certificate series is not configured. "
+                "Open the integration's Configure dialog and set it."
+            )
         try:
-            raw = await self.api.async_get_roadtax(self.plate_number, self.vin)
+            raw = await self.api.async_get_roadtax(
+                self.plate_number, self.vin, self.series
+            )
         except ERovignetaConnectionError as err:
             raise UpdateFailed(
-                f"Connection error to erovinieta.ro: {err}"
+                f"Connection error to solver service: {err}"
             ) from err
         except ERovignetaAPIError as err:
             raise UpdateFailed(f"eRovinieta API error: {err}") from err
@@ -94,111 +109,56 @@ class ERovignetaDataUpdateCoordinator(DataUpdateCoordinator):
         return parsed
 
     def _parse_response(self, raw: dict[str, Any]) -> dict[str, Any]:
-        """Parse raw API response into a clean data dict."""
-        records = raw.get("data", [])
-
-        if not records:
-            return {
-                "valid": False,
-                "records": [],
-                "active_record": None,
-                "days_remaining": 0,
-                "expiry_date": None,
-                "last_update": datetime.now(timezone.utc).isoformat(),
-            }
-
-        # Find the active record (status.id == 4 means "Activa")
-        now_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
-        active_record = None
-
-        for record in records:
-            status_id = record.get("status", {}).get("id")
-            data_stop = record.get("dataStop", 0)
-            if status_id == 4 and data_stop > now_ms:
-                # Pick the one with the latest expiry if multiple are active
-                if active_record is None or data_stop > active_record.get("dataStop", 0):
-                    active_record = record
-
-        if active_record:
-            expiry_dt = datetime.fromtimestamp(
-                active_record["dataStop"] / 1000, tz=timezone.utc
-            )
-            start_dt = datetime.fromtimestamp(
-                active_record["dataStart"] / 1000, tz=timezone.utc
-            )
-            days_remaining = max(
-                0, (expiry_dt - datetime.now(timezone.utc)).days
-            )
-
-            # Extract payment/owner info from grup
-            grup = active_record.get("grup", {})
-            platitor = grup.get("platitor", {})
-
-            return {
-                "valid": True,
-                "days_remaining": days_remaining,
-                "expiry_date": expiry_dt.isoformat(),
-                "start_date": start_dt.isoformat(),
-                "status": active_record.get("status", {}).get("denumire", "Unknown"),
-                "series": active_record.get("serie", ""),
-                "vehicle_category": active_record.get("categorieVehicol", {}).get(
-                    "descriere", ""
-                ),
-                "vehicle_category_code": active_record.get("categorieVehicol", {}).get(
-                    "cod", ""
-                ),
-                "duration": active_record.get("durataValabilitate", {}).get(
-                    "descriere", ""
-                ),
-                "country": active_record.get("tara", {}).get("denumire", ""),
-                "price": grup.get("valoareTotalaCuTva"),
-                "vignette_count": grup.get("numarVignette"),
-                "owner_name": platitor.get("nume", ""),
-                "owner_email": platitor.get("email", ""),
-                "plate_number": active_record.get("nrAuto", self.plate_number),
-                "vin": active_record.get("serieSasiu", self.vin),
-                "records": records,
-                "active_record": active_record,
-                "last_update": datetime.now(timezone.utc).isoformat(),
-            }
-
-        # No active record — might be expired
-        # Use the most recent record for historical info
-        latest = max(records, key=lambda r: r.get("dataStop", 0))
-        expiry_dt = datetime.fromtimestamp(
-            latest["dataStop"] / 1000, tz=timezone.utc
-        )
-        start_dt = datetime.fromtimestamp(
-            latest["dataStart"] / 1000, tz=timezone.utc
-        )
-        grup = latest.get("grup", {})
-        platitor = grup.get("platitor", {})
-
-        return {
+        """Parse the portal.etoll.ro vignette search response."""
+        now = datetime.now(timezone.utc)
+        records = (raw.get("data") or {}).get("content") or []
+        base = {
             "valid": False,
             "days_remaining": 0,
-            "expiry_date": expiry_dt.isoformat(),
-            "start_date": start_dt.isoformat(),
-            "status": latest.get("status", {}).get("denumire", "Unknown"),
-            "series": latest.get("serie", ""),
-            "vehicle_category": latest.get("categorieVehicol", {}).get(
-                "descriere", ""
-            ),
-            "vehicle_category_code": latest.get("categorieVehicol", {}).get(
-                "cod", ""
-            ),
-            "duration": latest.get("durataValabilitate", {}).get("descriere", ""),
-            "country": latest.get("tara", {}).get("denumire", ""),
-            "price": grup.get("valoareTotalaCuTva"),
-            "vignette_count": grup.get("numarVignette"),
-            "owner_name": platitor.get("nume", ""),
-            "owner_email": platitor.get("email", ""),
-            "plate_number": latest.get("nrAuto", self.plate_number),
-            "vin": latest.get("serieSasiu", self.vin),
+            "expiry_date": None,
+            "start_date": None,
+            "status": None,
+            "series": "",
+            "vehicle_category": "",
+            "emission_category": "",
+            "price": None,
+            "plate_number": self.plate_number,
+            "vin": self.vin,
             "records": records,
             "active_record": None,
-            "last_update": datetime.now(timezone.utc).isoformat(),
+            "last_update": now.isoformat(),
         }
+        if not records:
+            return base
+
+        def _dt(value: str | None) -> datetime:
+            if not value:
+                return datetime.min.replace(tzinfo=timezone.utc)
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+
+        active = [
+            r for r in records
+            if _dt(r.get("validityStartDate")) <= now <= _dt(r.get("validityEndDate"))
+        ]
+        chosen = max(active or records, key=lambda r: _dt(r.get("validityEndDate")))
+        expiry = _dt(chosen.get("validityEndDate"))
+        base.update(
+            {
+                "valid": bool(active),
+                "days_remaining": max(0, (expiry - now).days) if active else 0,
+                "expiry_date": expiry.isoformat(),
+                "start_date": _dt(chosen.get("validityStartDate")).isoformat(),
+                "status": "Activa" if active else "Expirata",
+                "series": chosen.get("series") or "",
+                "vehicle_category": chosen.get("vehicleCategory") or "",
+                "emission_category": chosen.get("emissionStandardsCategory") or "",
+                "price": chosen.get("price"),
+                "plate_number": chosen.get("licensePlateNumber", self.plate_number),
+                "vin": chosen.get("vin", self.vin),
+                "active_record": chosen if active else None,
+            }
+        )
+        return base
 
     def _check_expiry_warning(self, data: dict[str, Any]) -> None:
         """Fire an event if the vignette is expiring within the warning threshold."""

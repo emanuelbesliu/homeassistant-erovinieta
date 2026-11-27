@@ -1,21 +1,16 @@
-"""API client for erovinieta.ro — check Romanian road tax (rovinieta) validity.
+"""API client for eRovinieta (portal.etoll.ro).
 
-Uses the anonymous public API — no account or login required.
-Authentication is handled via captcha solving only.
+The portal protects its public vignette search with a rotated, distorted
+captcha. Solving it needs OCR that is too heavy for Home Assistant, so the
+work is delegated to the ``erovinieta-solver`` service (see ``solver-service/``).
 """
 
 import logging
-import time
 from typing import Any
 
 import aiohttp
 
-from .captcha_ocr import solve_captcha
-from .const import (
-    API_URL_CAPTCHA,
-    API_URL_GET_ROADTAX,
-    MAX_CAPTCHA_RETRIES,
-)
+from .const import SOLVER_TIMEOUT
 from .exceptions import (
     ERovignetaAPIError,
     ERovignetaCaptchaError,
@@ -24,158 +19,64 @@ from .exceptions import (
 
 _LOGGER = logging.getLogger(__name__)
 
-# Keep backward-compatible aliases so existing imports still work
+# Keep backward-compatible alias so existing imports still work
 CaptchaError = ERovignetaCaptchaError
 
 
 class ERovignetaAPI:
-    """Async API client for erovinieta.ro."""
+    """Async client for the erovinieta solver service."""
+
+    def __init__(self, solver_url: str) -> None:
+        """Initialize with the solver service base URL."""
+        self._solver_url = solver_url.rstrip("/")
 
     async def async_get_roadtax(
         self,
         plate_number: str,
         vin: str,
+        series: str,
         session: aiohttp.ClientSession | None = None,
     ) -> dict[str, Any]:
-        """
-        Fetch road tax data for a vehicle.
-
-        Handles captcha solving with retries.
-
-        Args:
-            plate_number: Vehicle registration plate (e.g. "B123ABC").
-            vin: Full VIN / chassis number.
-            session: Optional aiohttp session. Creates one if not provided.
-
-        Returns:
-            Dict with the full API response data.
+        """Fetch vignette data for a vehicle.
 
         Raises:
-            ERovignetaAPIError: On API failure after all retries.
-            ERovignetaConnectionError: On network / HTTP errors.
+            ERovignetaConnectionError: solver unreachable or captcha not solved.
+            ERovignetaAPIError: the portal rejected the vehicle data.
         """
         own_session = session is None
         if own_session:
             session = aiohttp.ClientSession()
 
+        payload = {
+            "plate": plate_number.upper().strip(),
+            "vin": vin.upper().strip(),
+            "series": series.upper().strip(),
+        }
         try:
-            return await self._fetch_with_retries(session, plate_number, vin)
-        except aiohttp.ClientError as err:
+            async with session.post(
+                f"{self._solver_url}/check",
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=SOLVER_TIMEOUT),
+            ) as resp:
+                try:
+                    data = await resp.json(content_type=None)
+                except ValueError:
+                    data = {}
+                if resp.status == 200 and data.get("success"):
+                    return data
+                message = data.get("message") or f"HTTP {resp.status}"
+                if resp.status in (429, 503):
+                    raise ERovignetaConnectionError(message)
+                raise ERovignetaAPIError(message)
+        except (aiohttp.ClientError, TimeoutError) as err:
             raise ERovignetaConnectionError(
-                f"Connection error to erovinieta.ro: {err}"
+                f"Solver service unreachable at {self._solver_url}: {err}"
             ) from err
         finally:
             if own_session:
                 await session.close()
 
-    async def _fetch_with_retries(
-        self,
-        session: aiohttp.ClientSession,
-        plate_number: str,
-        vin: str,
-    ) -> dict[str, Any]:
-        """Attempt captcha + API call with retries on captcha failure."""
-        last_error: Exception | None = None
-
-        for attempt in range(1, MAX_CAPTCHA_RETRIES + 1):
-            try:
-                return await self._single_attempt(session, plate_number, vin)
-            except ERovignetaCaptchaError as err:
-                _LOGGER.warning(
-                    "Captcha attempt %d/%d failed: %s",
-                    attempt,
-                    MAX_CAPTCHA_RETRIES,
-                    err,
-                )
-                last_error = err
-                continue
-
-        raise ERovignetaAPIError(
-            f"Failed after {MAX_CAPTCHA_RETRIES} captcha attempts: {last_error}"
-        )
-
-    async def _single_attempt(
-        self,
-        session: aiohttp.ClientSession,
-        plate_number: str,
-        vin: str,
-    ) -> dict[str, Any]:
-        """Single captcha-solve + getRoadtax call."""
-        # Step 1: Fetch captcha image (establishes JSESSIONID cookie)
-        timestamp = int(time.time() * 1000)
-        captcha_url = f"{API_URL_CAPTCHA}?t={timestamp}"
-
-        _LOGGER.debug("Fetching captcha from %s", captcha_url)
-        try:
-            async with session.get(captcha_url) as resp:
-                if resp.status != 200:
-                    raise ERovignetaConnectionError(
-                        f"Captcha fetch failed: HTTP {resp.status}"
-                    )
-                captcha_image = await resp.read()
-        except aiohttp.ClientError as err:
-            raise ERovignetaConnectionError(
-                f"Network error fetching captcha: {err}"
-            ) from err
-
-        # Step 2: OCR the captcha using Pillow-based template matching
-        try:
-            captcha_text = solve_captcha(captcha_image)
-        except ValueError as err:
-            raise ERovignetaCaptchaError(f"OCR failed: {err}") from err
-
-        _LOGGER.debug("OCR result: %s", captcha_text)
-
-        if not captcha_text or len(captcha_text) < 3:
-            raise ERovignetaCaptchaError(
-                f"OCR returned unusable text: '{captcha_text}'"
-            )
-
-        # Step 3: Call getRoadtax with the same session (JSESSIONID cookie)
-        params = {
-            "plateNo": plate_number.upper().strip(),
-            "vin": vin.upper().strip(),
-            "captcha": captcha_text,
-        }
-        _LOGGER.debug("Calling getRoadtax for plate=%s", plate_number)
-
-        try:
-            async with session.get(API_URL_GET_ROADTAX, params=params) as resp:
-                if resp.status != 200:
-                    raise ERovignetaConnectionError(
-                        f"getRoadtax failed: HTTP {resp.status}"
-                    )
-                data = await resp.json()
-        except aiohttp.ClientError as err:
-            raise ERovignetaConnectionError(
-                f"Network error calling getRoadtax: {err}"
-            ) from err
-
-        # Check for captcha error
-        if not data.get("success"):
-            message = data.get("message", "Unknown error")
-            if "captcha" in message.lower() or "text" in message.lower():
-                raise ERovignetaCaptchaError(f"Bad captcha: {message}")
-            raise ERovignetaAPIError(f"API error: {message}")
-
-        return data
-
-    async def async_validate(
-        self,
-        plate_number: str,
-        vin: str,
-    ) -> bool:
-        """
-        Validate that we can successfully query the API for this vehicle.
-
-        Used during config flow to verify user input.
-
-        Returns:
-            True if the API call succeeded (even if no active vignette found).
-
-        Raises:
-            ERovignetaAPIError: On connection or API failure.
-        """
-        data = await self.async_get_roadtax(plate_number, vin)
-        # success=True means the API call worked (even with 0 results)
+    async def async_validate(self, plate_number: str, vin: str, series: str) -> bool:
+        """Validate the vehicle data against the portal (used by the config flow)."""
+        data = await self.async_get_roadtax(plate_number, vin, series)
         return data.get("success", False)

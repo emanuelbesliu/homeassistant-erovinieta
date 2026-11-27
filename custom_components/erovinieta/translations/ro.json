@@ -8,13 +8,16 @@
           "plate_number": "Numar inmatriculare (ex. B123ABC)",
           "vin": "Serie sasiu (VIN)",
           "update_interval": "Interval actualizare (secunde)",
-          "expiry_warning_days": "Prag avertizare expirare (zile)"
+          "expiry_warning_days": "Prag avertizare expirare (zile)",
+          "registration_series": "Certificat de înmatriculare (ex. I00807592S)",
+          "solver_url": "URL serviciu solver"
         }
       }
     },
     "error": {
-      "cannot_connect": "Nu se poate conecta la erovinieta.ro sau validarea captcha a esuat. Incercati din nou.",
-      "unknown": "Eroare necunoscuta. Verificati logurile Home Assistant."
+      "cannot_connect": "Serviciul solver nu poate fi contactat sau captcha nu a putut fi rezolvat. Încercați din nou.",
+      "unknown": "Eroare necunoscuta. Verificati logurile Home Assistant.",
+      "invalid_vehicle": "Portalul a respins datele vehiculului. Verificați numărul, seria șasiului și certificatul de înmatriculare."
     },
     "abort": {
       "already_configured": "Acest vehicul este deja configurat."
@@ -27,7 +30,9 @@
         "description": "Configurati optiunile pentru integrarea eRovinieta.",
         "data": {
           "update_interval": "Interval actualizare (secunde)",
-          "expiry_warning_days": "Prag avertizare expirare (zile)"
+          "expiry_warning_days": "Prag avertizare expirare (zile)",
+          "registration_series": "Certificat de înmatriculare (ex. I00807592S)",
+          "solver_url": "URL serviciu solver"
         }
       }
     }
